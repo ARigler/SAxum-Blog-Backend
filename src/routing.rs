@@ -1,9 +1,13 @@
+use std::str::FromStr;
+
 pub use crate::*;
+use axum::extract::Json;
 use axum::extract::Path;
 use axum::extract::State;
 use axum::routing::{delete, get, patch, post, RouterIntoService};
 use axum::Router;
 use hyper::StatusCode;
+use serde_json::Value;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::Surreal;
 
@@ -30,21 +34,29 @@ pub async fn health_check() -> StatusCode {
 }
 
 pub async fn get_all_posts(State(db_store): State<Store>) {
-    db_store.get_all().await.unwrap();
+    let vec_posts: Vec<Post> = db_store.get_all().await.unwrap();
+    dbg!(vec_posts);
 }
 
 pub async fn get_single_post(State(db_store): State<Store>, Path(id): Path<Uuid>) {
-    db_store.get_by_id(id).await.unwrap();
+    dbg!(id);
+    let post: Post = db_store.get_by_id(id).await.unwrap();
+    dbg!(post);
 }
 
-pub async fn create_post_handler(State(db_store): State<Store>, body: String) {
-    dbg!(body);
+pub async fn create_post_handler(State(db_store): State<Store>, Json(payload): Json<Value>) {
+    dbg!(&payload);
+    let post: Post = serde_json::from_value(payload).unwrap();
+    db_store.create_post(post).await.unwrap();
+    dbg!("Post created");
 }
 
-pub async fn amend_post(State(db_store): State<Store>, body: String) {
-    dbg!(body);
+pub async fn amend_post(State(db_store): State<Store>, Json(payload): Json<Value>) {
+    dbg!(&payload);
 }
 
-pub async fn delete_post_handler(State(db_store): State<Store>, body: String) {
-    dbg!(body);
+pub async fn delete_post_handler(State(db_store): State<Store>, Json(payload): Json<Value>) {
+    dbg!(&payload);
+    let post: Post = serde_json::from_value(payload).unwrap();
+    db_store.delete_post(post.post_id).await.unwrap();
 }

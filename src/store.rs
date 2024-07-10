@@ -26,11 +26,12 @@ impl Store {
     }
 
     pub async fn get_by_id(&self, id: Uuid) -> Result<Post, Error> {
-        if let Some(record) = self.db.select((&self.table, id.clone())).await? {
+        if let Some(record) = self.db.select((&self.table, id)).await? {
             return Ok(record);
+        } else {
+            let error = Error::Db(Thrown(format!("Record with id {} not found", id)));
+            Err(error)
         }
-        let error = Error::Db(Thrown(format!("Post with id {} not found", id)));
-        Err(error)
     }
 
     pub async fn create_post(&self, content: Post) -> Result<Vec<Post>, Error> {
