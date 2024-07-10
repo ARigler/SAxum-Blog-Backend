@@ -1,9 +1,11 @@
+use ::serde::{Deserialize, Serialize};
 use axum::{
     http::StatusCode,
     routing::{get, post},
     Json, Router,
 };
-use serde::{Deserialize, Serialize};
+use axum_crud::construct_routes;
+use axum_crud::store::*;
 
 #[tokio::main]
 async fn main() {
@@ -11,16 +13,12 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     // build our application with a route
-    let app = Router::new()
-        // `GET /` goes to `root`
-        .route("/", get(root));
+    let repository = Store::new().await;
+    let app = construct_routes(repository).await;
 
     // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let server_port = "0.0.0.0:3000";
+    println!("Listening on {}", server_port);
+    let listener = tokio::net::TcpListener::bind(server_port).await.unwrap();
     axum::serve(listener, app).await.unwrap();
-}
-
-// basic handler that responds with a static string
-async fn root() -> &'static str {
-    "Hello, World!"
 }
