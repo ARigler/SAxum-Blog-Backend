@@ -25,13 +25,12 @@ impl Store {
         Ok(records)
     }
 
-    pub async fn get_by_id(&self, id: Uuid) -> Result<Post, Error> {
-        if let Some(record) = self.db.select((&self.table, id)).await? {
+    pub async fn get_by_id(&self, id: String) -> Result<Post, Error> {
+        if let Some(record) = self.db.select((&self.table, id.clone())).await? {
             return Ok(record);
-        } else {
-            let error = Error::Db(Thrown(format!("Record with id {} not found", id)));
-            Err(error)
         }
+        let error = Error::Db(Thrown(format!("Record with id {} not found", id)));
+        Err(error)
     }
 
     pub async fn create_post(&self, content: Post) -> Result<Vec<Post>, Error> {
@@ -39,7 +38,7 @@ impl Store {
         Ok(record)
     }
 
-    pub async fn update_post(&self, id: Uuid, content: Post) -> Result<Post, Error> {
+    pub async fn update_post(&self, id: String, content: Post) -> Result<Post, Error> {
         let record = self
             .db
             .update((&self.table, id))
@@ -49,7 +48,7 @@ impl Store {
         Ok(record)
     }
 
-    pub async fn delete_post(&self, id: Uuid) -> Result<Post, Error> {
+    pub async fn delete_post(&self, id: String) -> Result<Post, Error> {
         let result = self.db.delete((&self.table, id)).await?.unwrap();
         Ok(result)
     }

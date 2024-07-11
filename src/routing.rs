@@ -6,6 +6,7 @@ use axum::extract::Path;
 use axum::extract::State;
 use axum::routing::{delete, get, patch, post, RouterIntoService};
 use axum::Router;
+use chrono::Local;
 use hyper::StatusCode;
 use serde_json::Value;
 use surrealdb::engine::remote::ws::Client;
@@ -38,25 +39,34 @@ pub async fn get_all_posts(State(db_store): State<Store>) {
     dbg!(vec_posts);
 }
 
-pub async fn get_single_post(State(db_store): State<Store>, Path(id): Path<Uuid>) {
-    dbg!(id);
+pub async fn get_single_post(State(db_store): State<Store>, Path(id): Path<String>) {
+    dbg!(&id);
     let post: Post = db_store.get_by_id(id).await.unwrap();
     dbg!(post);
 }
 
-pub async fn create_post_handler(State(db_store): State<Store>, Json(payload): Json<Value>) {
+pub async fn create_post_handler(State(db_store): State<Store>, Json(payload): Json<Post>) {
     dbg!(&payload);
-    let post: Post = serde_json::from_value(payload).unwrap();
-    db_store.create_post(post).await.unwrap();
+    //let post: Post = serde_json::from_value(payload).unwrap();
+    db_store.create_post(payload).await.unwrap();
     dbg!("Post created");
 }
 
-pub async fn amend_post(State(db_store): State<Store>, Json(payload): Json<Value>) {
+pub async fn amend_post(
+    State(db_store): State<Store>,
+    Path(id): Path<String>,
+    Json(payload): Json<Post>,
+) {
     dbg!(&payload);
+    db_store.update_post(id, payload).await.unwrap();
 }
 
-pub async fn delete_post_handler(State(db_store): State<Store>, Json(payload): Json<Value>) {
+pub async fn delete_post_handler(
+    State(db_store): State<Store>,
+    Path(id): Path<String>,
+    Json(payload): Json<Post>,
+) {
     dbg!(&payload);
-    let post: Post = serde_json::from_value(payload).unwrap();
-    db_store.delete_post(post.post_id).await.unwrap();
+    db_store.delete_post(id).await.unwrap();
+    //    db_store.delete_post(post.post_id).await.unwrap();
 }
