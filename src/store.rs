@@ -8,6 +8,7 @@ pub use surrealdb::Surreal;
 #[derive(Clone)]
 pub struct Store {
     table: String,
+    user_table: String,
     db: Surreal<Client>,
 }
 
@@ -16,6 +17,7 @@ impl Store {
         let db = get_database().await.unwrap();
         Store {
             table: String::from("posts"),
+            user_table: String::from("users"),
             db,
         }
     }
@@ -30,6 +32,21 @@ impl Store {
             return Ok(record);
         }
         let error = Error::Db(Thrown(format!("Record with id {} not found", id)));
+        Err(error)
+    }
+
+    pub async fn get_by_title(&self, title: String) -> Result<Post, Error> {
+        if let Some(record) = self
+            .db
+            .query("SELECT * FROM $posts WHERE post_title = $title")
+            .bind(("title", title.clone()))
+            .bind(("posts", self.table.clone()))
+            .await?
+            .take(0)?
+        {
+            return Ok(record);
+        }
+        let error = Error::Db(Thrown(format!("Todo with title {} not found", title)));
         Err(error)
     }
 

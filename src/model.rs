@@ -1,5 +1,6 @@
 use ::serde::{Deserialize, Serialize};
 use chrono::prelude::*;
+use hyper::StatusCode;
 use surrealdb::engine::remote::ws::Ws;
 use surrealdb::opt::auth::Root;
 use surrealdb::sql::*;
@@ -16,7 +17,7 @@ pub struct Post {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct User {
-    pub user_id: Uuid,
-    pub user_name: String,
+    pub id: Option<Thing>,
+    pub email: String,
     pub password: String,
 }
