@@ -55,7 +55,6 @@ pub async fn sign_in(
         dbg!("bcrypt errors");
         return Err(StatusCode::UNAUTHORIZED); // Password verification failed, return unauthorized status
     }
-    dbg!("Password verification passed");
     // Generate a JWT token for the authenticated user
     let token = encode_jwt(user.email).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?; // Handle JWT encoding errors
 
@@ -64,7 +63,6 @@ pub async fn sign_in(
 }
 
 pub fn verify_password(password: &str, hash: &str) -> Result<bool, bcrypt::BcryptError> {
-    dbg!("Password verification reached");
     verify(password, hash)
 }
 pub fn hash_password(password: &str) -> Result<String, bcrypt::BcryptError> {
